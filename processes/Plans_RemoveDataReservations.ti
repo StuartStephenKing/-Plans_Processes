@@ -1,0 +1,27 @@
+#region Prolog
+
+vDataReservationMap = '';
+vDimIndex = 1;
+vDim = TABDIM ( pCube, vDimIndex );
+WHILE ( vDim @<> '' );
+    IF ( vDimIndex < CubeDimensionCountGet ( pCube ) );
+        vDataReservationMap = vDataReservationMap | '|';
+    ENDIF;
+    vDimIndex = vDimIndex + 1;
+    vDim = TABDIM ( pCube, vDimIndex );
+END;
+
+vClientIndex = 1;
+vClient = ElementName ( '}Clients', '}Clients', vClientIndex );
+WHILE ( vClient @<> '' );
+     CubeDataReservationReleaseAll ( pCube, vClient, vDataReservationMap );
+    vClientIndex = vClientIndex + 1;
+    vClient = ElementName ( '}Clients', '}Clients', vClientIndex );
+END;
+
+
+#endregion
+#region Epilog
+
+CubeDataReservationReleaseAll ( 'plan_BudgetPlan', '', '||||||', '|' );
+#endregion
