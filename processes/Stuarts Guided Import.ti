@@ -1,0 +1,70 @@
+#region Prolog
+MinorErrorLogMax = -1;
+OnMinorErrorDoItemSkip = 1;
+SetInputCharacterSet('TM1CS_UTF8');
+If (DimensionExists('Stuart Demo Dimension') = 0);
+DimensionCreate('Stuart Demo Dimension');
+EndIf;
+lastAttr='';
+iAttr=DIMSIZ('}ElementAttributes_Stuart Demo Dimension');
+i=iAttr;
+While(i > 0);
+attrName = DIMNM('}ElementAttributes_Stuart Demo Dimension', i);
+If(SUBST(attrName,0,1)@<>'}');
+lastAttr=attrName;
+i=0;
+Else;
+i=i-1;
+EndIf;
+End;
+ElementAttrInsert('Stuart Demo Dimension','Stuart Demo Dimension',lastAttr,'Format','S');
+lastAttr = 'Format';
+#endregion
+#region Metadata
+If(vType@='');
+vType='N';
+ElseIf(vType@='String' % vType@='S');
+vType='S';
+ElseIf(vType@='Numeric' % vType@='N');
+vType='N';
+ElseIf(vType@='Consolidated' % vType@='C');
+vType='C';
+Else;
+StringToNumber('IMPERROR_MT_'|vType);
+EndIf;
+If(vWeight@='');
+vWeight_num=1;
+Else;
+vWeight_num=StringToNumberEx(vWeight,'.',',');
+EndIf;
+vLastMember='';
+If(Member@<>'');
+If(vLastMember@='');
+HierarchyElementInsert('Stuart Demo Dimension','Stuart Demo Dimension','',Member,vType);
+Else;
+If(HierarchyElementExists('Stuart Demo Dimension','Leaves',Member)=1);
+StringToNumber('IMPERROR_CL_'|Member);
+EndIf;
+HierarchyElementInsert('Stuart Demo Dimension','Stuart Demo Dimension','',Member,'C');
+HierarchyElementComponentAdd('Stuart Demo Dimension','Stuart Demo Dimension',Member,vLastMember,vWeight_num);
+EndIf;
+vLastMember=Member;
+EndIf;
+If(Parent@<>'');
+If(vLastMember@='');
+HierarchyElementInsert('Stuart Demo Dimension','Stuart Demo Dimension','',Parent,vType);
+Else;
+If(HierarchyElementExists('Stuart Demo Dimension','Leaves',Parent)=1);
+StringToNumber('IMPERROR_CL_'|Parent);
+EndIf;
+HierarchyElementInsert('Stuart Demo Dimension','Stuart Demo Dimension','',Parent,'C');
+HierarchyElementComponentAdd('Stuart Demo Dimension','Stuart Demo Dimension',Parent,vLastMember,vWeight_num);
+EndIf;
+vLastMember=Parent;
+EndIf;
+#endregion
+#region Data
+If(Member@<>'');
+ElementAttrPutS(ATTR_S_Format,'Stuart Demo Dimension','Stuart Demo Dimension',Member,'Format');
+EndIf;
+#endregion

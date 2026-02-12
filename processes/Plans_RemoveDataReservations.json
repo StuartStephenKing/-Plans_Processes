@@ -1,0 +1,20 @@
+{
+	"@type":"Process",
+	"Name":"Plans_RemoveDataReservations",
+	"HasSecurityAccess":true,
+	"Code@Code.link":"Plans_RemoveDataReservations.ti",
+	"DataSource":
+	{
+		"Type":"None"
+	},
+	"Parameters":
+	[
+		{
+			"Name":"pCube",
+			"Prompt":"",
+			"Value":"plan_BudgetPlan",
+			"Type":"String"
+		}
+	],
+	"Variables":[]
+}
