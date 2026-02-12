@@ -1,0 +1,95 @@
+#region Prolog
+
+vNow = TIMST (NOW(), '\Y-\m-\d \h:\i:\s' );
+
+#vUser = TM1User();
+
+vPlanStateCube = pPrefix | '_' | pPlan | '_State';
+vPlanTaskDimension = pPrefix | '_' | pPlan | '_Tasks';
+vPlanControlCube = pPrefix;
+vOriginalApprovalDimension = CELLGETS ( '}Plans', pPlan , 'Dimension' );
+vPlanApprovalDimension = pPrefix | '_' | pPlan | '_Approval';
+vPlanApprovalHierarchy = vPlanApprovalDimension;
+vPlanApprovalSubset = 'Default';
+vUser = CellGetS ( vPlanStateCube, pMember, pTask, 'LastOwner' ); 
+
+#LogOutput( 'INFO', vPlanStateCube | ' ' |  pMember  | ' ' |  pTask   );
+vLastOwnershipNode = CellGetS ( vPlanStateCube, pMember, pTask, 'LastOwnershipNode' );
+
+vCubeDimensionCount = CubeDimensionCountGet ( pCube );
+vDataReservationDimensionIndex = -1;
+vCubeDimensionIndex = 1;
+vCubeDimension = TABDIM ( pCube, vCubeDimensionIndex );
+WHILE ( vCubeDimension @<> '' );
+    IF ( vCubeDimension @= vOriginalApprovalDimension ); 
+        vDataReservationDimensionIndex = vCubeDimensionIndex;
+    ENDIF;
+    vCubeDimensionIndex = vCubeDimensionIndex + 1;
+    vCubeDimension = TABDIM ( pCube, vCubeDimensionIndex );
+END;
+
+ASCIIOutput( './model_upload/debug.txt', 'vDataReservationDimensionIndex: ' | NumberToString( vDataReservationDimensionIndex ) );
+ASCIIOutput( './model_upload/debug.txt', 'vDataReservationDimensionIndex - 1  : ' | NumberToString( vDataReservationDimensionIndex - 1   ) );
+ASCIIOutput( './model_upload/debug.txt', 'vCubeDimensionCount - vDataReservationDimensionIndex: ' | NumberToString( vCubeDimensionCount - vDataReservationDimensionIndex ) );
+
+vDataReservationMapStart = FILL(  '|', vDataReservationDimensionIndex - 1  );
+vDataReservationMapEnd = FILL ( '|',  vCubeDimensionCount - vDataReservationDimensionIndex  );
+
+# GlobalSecurityOverlay
+vOverlayCube = '}SecurityOverlayGlobal_' | pCube;
+vOverlayMap = '';
+vDimIndex = 1;
+vDim = TABDIM ( pCube, vDimIndex );
+WHILE ( vDim @<> '' );
+    IF ( vDim @= vOriginalApprovalDimension );
+        vOverlayMap = vOverlayMap | '1';
+    ELSE;
+        vOverlayMap = vOverlayMap | '0';
+    ENDIF;
+    IF ( vDimIndex < CubeDimensionCountGet ( pCube ) );
+        vOverlayMap = vOverlayMap | ':';
+    ENDIF;
+    vDimIndex = vDimIndex + 1;
+    vDim = TABDIM ( pCube, vDimIndex );
+END;
+
+IF ( CubeExists ( vOverlayCube ) = 0);
+    SecurityOverlayCreateGlobalDefault ( pCube, vOverlayMap );
+ENDIF;
+
+vLockSubsetMDX = '{DESCENDANTS([' | vPlanApprovalDimension | '].[' | vPlanApprovalHierarchy | '].[' | vLastOwnershipNode  | '])}';
+vLockSubset = '_TempLockSubset_' | pMember;
+SubsetCreatebyMDX ( vLockSubset, vLockSubsetMDX, 1 );
+vSubsetSize = HierarchySubsetGetSize(vPlanApprovalDimension, vPlanApprovalHierarchy, vLockSubset );
+
+vSubsetIndex = 1;
+WHILE ( vSubsetIndex <= vSubsetSize );
+    vElement = HierarchySubsetGetElementName( vPlanApprovalDimension, vPlanApprovalHierarchy, vLockSubset, vSubsetIndex );
+    vElementState = CellGetS ( vPlanStateCube, vElement, pTask, 'State' );
+    IF ( vElementState @= '2' );
+        SecurityOverlayGlobalLockNode ( 0, pCube, vElement );
+    ELSE;
+        SecurityOverlayGlobalLockNode ( 1, pCube, vElement );
+    ENDIF;
+    vSubsetIndex = vSubsetIndex + 1;
+END;
+
+
+vSubsetIndex = 1;
+WHILE ( vSubsetIndex <= vSubsetSize );
+    vElement = HierarchySubsetGetElementName( vPlanApprovalDimension, vPlanApprovalHierarchy, vLockSubset, vSubsetIndex );
+    vElementState = CellGetS ( vPlanStateCube, vElement, pTask, 'State' );
+    IF ( vElementState @= '2' );
+        ASCIIOutput( './model_upload/debug.txt', 'DR Acquire ' | vDataReservationMapStart | vElement | vDataReservationMapEnd );
+        CubeDataReservationAcquire ( pCube, vUser, 1, vDataReservationMapStart | vElement | vDataReservationMapEnd );
+    ELSE;
+        ASCIIOutput( './model_upload/debug.txt', 'DR Release ' | vDataReservationMapStart | vElement | vDataReservationMapEnd );
+        CubeDataReservationRelease ( pCube, vUser, vDataReservationMapStart | vElement | vDataReservationMapEnd );
+    ENDIF;
+    vSubsetIndex = vSubsetIndex + 1;
+END;
+
+
+
+
+#endregion
