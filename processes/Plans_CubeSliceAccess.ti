@@ -2,8 +2,6 @@
 
 vNow = TIMST (NOW(), '\Y-\m-\d \h:\i:\s' );
 
-#vUser = TM1User();
-
 vPlanStateCube = pPrefix | '_' | pPlan | '_State';
 vPlanTaskDimension = pPrefix | '_' | pPlan | '_Tasks';
 vPlanControlCube = pPrefix;
@@ -11,10 +9,7 @@ vOriginalApprovalDimension = CELLGETS ( '}Plans', pPlan , 'Dimension' );
 vPlanApprovalDimension = pPrefix | '_' | pPlan | '_Approval';
 vPlanApprovalHierarchy = vPlanApprovalDimension;
 vPlanApprovalSubset = 'Default';
-vUser = CellGetS ( vPlanStateCube, pMember, pTask, 'LastOwner' ); 
-
-#LogOutput( 'INFO', vPlanStateCube | ' ' |  pMember  | ' ' |  pTask   );
-vLastOwnershipNode = CellGetS ( vPlanStateCube, pMember, pTask, 'LastOwnershipNode' );
+vUser = CellGetS ( vPlanStateCube, pMember, pTask, 'Owner' ); 
 
 vCubeDimensionCount = CubeDimensionCountGet ( pCube );
 vDataReservationDimensionIndex = -1;
@@ -57,7 +52,7 @@ IF ( CubeExists ( vOverlayCube ) = 0);
     SecurityOverlayCreateGlobalDefault ( pCube, vOverlayMap );
 ENDIF;
 
-vLockSubsetMDX = '{DESCENDANTS([' | vPlanApprovalDimension | '].[' | vPlanApprovalHierarchy | '].[' | vLastOwnershipNode  | '])}';
+vLockSubsetMDX = '{DESCENDANTS([' | vPlanApprovalDimension | '].[' | vPlanApprovalHierarchy | '].[' | pMember  | '])}';
 vLockSubset = '_TempLockSubset_' | pMember;
 SubsetCreatebyMDX ( vLockSubset, vLockSubsetMDX, 1 );
 vSubsetSize = HierarchySubsetGetSize(vPlanApprovalDimension, vPlanApprovalHierarchy, vLockSubset );
