@@ -74,13 +74,8 @@ vSubsetIndex = 1;
 WHILE ( vSubsetIndex <= vSubsetSize );
     vElement = HierarchySubsetGetElementName( vPlanApprovalDimension, vPlanApprovalHierarchy, vLockSubset, vSubsetIndex );
     vElementState = CellGetS ( vPlanStateCube, vElement, pTask, 'State' );
-    IF ( vElementState @= '2' );
-        ASCIIOutput( './model_upload/debug.txt', 'DR Acquire ' | vDataReservationMapStart | vElement | vDataReservationMapEnd );
-        CubeDataReservationAcquire ( pCube, vUser, 1, vDataReservationMapStart | vElement | vDataReservationMapEnd );
-    ELSE;
-        ASCIIOutput( './model_upload/debug.txt', 'DR Release ' | vDataReservationMapStart | vElement | vDataReservationMapEnd );
-        CubeDataReservationRelease ( pCube, vUser, vDataReservationMapStart | vElement | vDataReservationMapEnd );
-    ENDIF;
+    ASCIIOutput( './model_upload/debug.txt', 'DR Acquire ' | vDataReservationMapStart | vElement | vDataReservationMapEnd );
+    CubeDataReservationAcquire ( pCube, vUser, 1, vDataReservationMapStart | vElement | vDataReservationMapEnd );
     vSubsetIndex = vSubsetIndex + 1;
 END;
 

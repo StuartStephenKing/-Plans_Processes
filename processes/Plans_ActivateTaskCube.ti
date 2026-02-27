@@ -19,7 +19,9 @@ CellPutS ( 'WRITE', '}CubeSecurity', pCube, '}Plans_Everyone' );
 vDimIndex = 1;
 vCubeDim = TABDIM( pCube, vDimIndex );
 WHILE ( vCubeDim @<> '' );
-    CellPutS ( 'READ', '}DimensionSecurity', vCubeDim, '}Plans_Everyone' );
+    IF ( CubeExists ( '}DimensionSecurity' ) =  1 );
+        CellPutS ( 'READ', '}DimensionSecurity', vCubeDim, '}Plans_Everyone' );
+    ENDIF;
     IF ( CubeExists ( '}ElementSecurity_' | vCubeDim ) = 1 & vCubeDim @<> vModelApprovalDimension );
         LogOutput ( 'INFO', 'Dimension ' | vCubeDim | ' has element security enabled' );
     ENDIF;
@@ -56,9 +58,14 @@ ELSE;
             LogOutput( 'INFO', 'Deletiing current SecurityOverlay cube for ' | pCube );
             SecurityOverlayDestroyGlobalDefault( pCube );
             LogOutput( 'INFO', 'Generating SecurityOverlay cube for ' | pCube | ' with map ' | vOverlayMap );
-            
             SecurityOverlayCreateGlobalDefault ( pCube, vOverlayMap );
         ENDIF;
+    ELSE;
+        LogOutput( 'INFO', 'Deletiing current SecurityOverlay cube for ' | pCube );
+        SecurityOverlayDestroyGlobalDefault( pCube );
+        LogOutput( 'INFO', 'Generating SecurityOverlay cube for ' | pCube | ' with map ' | vOverlayMap );
+        SecurityOverlayCreateGlobalDefault ( pCube, vOverlayMap );
+
     ENDIF;
 ENDIF;
 

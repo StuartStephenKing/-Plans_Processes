@@ -2,7 +2,7 @@
 
 # Repeat this section for each cube used for contribution in the plan
 vCube = 'plan_BudgetPlan';
-ExecuteProcess( 'Plans_CubeSliceAccess', 'pPlan', pPlan, 'pTask', pTask, 'pMember', pMember, 'pPrefix', '}Plans', 'pState', 0, 'pCube', vCube  );
+ExecuteProcess( 'Plans_CubeSliceRelease', 'pPlan', pPlan, 'pTask', pTask, 'pMember', pMember, 'pPrefix', '}Plans', 'pState', 0, 'pCube', vCube  );
 
 
 
